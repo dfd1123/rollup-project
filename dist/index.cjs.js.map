@@ -1,0 +1,1 @@
+{"version":3,"file":"index.cjs.js","sources":["../src/test.ts"],"sourcesContent":[null],"names":["testA","a","console","log","testB","b"],"mappings":";;IAAaA,KAAK,GAAG,SAARA,KAAKA,CAAIC,CAAS,EAAI;AAC/BC,EAAAA,OAAO,CAACC,GAAG,CAAC,OAAO,CAAC,CAAA;AACxB,EAAC;AAEM,IAAMC,KAAK,GAAG,SAARA,KAAKA,CAAIH,CAAS,EAAEI,CAAS,EAAI;AAC1CH,EAAAA,OAAO,CAACC,GAAG,CAAC,OAAO,CAAC,CAAA;AACxB;;;;;"}
