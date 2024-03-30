@@ -3,9 +3,14 @@
       "@babel/preset-env", "@babel/preset-react", "@babel/preset-typescript"
     ],
     "plugins": [
+      "@emotion",
       [
         "@babel/plugin-transform-runtime",
-        { "corejs": 2 }
+        { 
+          "helpers": true,
+          "regenerator": true,
+          "corejs": false
+        }
       ]
     ]
   }

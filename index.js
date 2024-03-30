@@ -1,7 +1,8 @@
-export const testA = () => {
-    console.log('testA')
-}
 
-export const testB = () => {
-    console.log('testB')
+'use strict'
+
+if (process.env.npm_package_type === 'module') {
+  module.exports = require('./modules.ems.js')
+} else {
+  module.exports = require('./modules.cjs.js')
 }

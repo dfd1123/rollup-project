@@ -1,10 +1,9 @@
 import path from 'path';
-import { readdir, writeFile, readFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import _debounce from 'lodash/debounce';
-import _startCase from 'lodash/startCase';
+import { existsSync, promises } from 'fs';
+import { startCase } from 'lodash-es';
+import { SVG_ATTRIBUTE_KEYS } from './svgConst';
 
-// const svgFileDir = path.resolve(__dirname, '../');
+const { readdir, writeFile, readFile, mkdir } = promises;
 
 export type SvgComponentGeneratorOption = {
 	svgFileDir: string; 
@@ -84,12 +83,12 @@ class SvgComponentGenerator {
 		const fileList = list.map((file) => `${file.replace('.svg', '')}`);
   
 		const staticSvgIconName = fileList.map(item => `'${item}'`).join(' | ');
-		const svgComponentName = fileList.map(item => `'${`Svg${_startCase(item.replace(/\//gi, '-').replace('.svg', '')).replace(/ /gi, '')}'`}`).join(' | ');
+		const svgComponentName = fileList.map(item => `'${`Svg${startCase(item.replace(/\//gi, '-').replace('.svg', '')).replace(/ /gi, '')}'`}`).join(' | ');
 		const particalSvgObj = fileList.filter(item => item.includes('/')).reduce<Record<string, string>>((acc, cur) => {
 			const arr = cur.split('/');
 			const fileName = arr.pop();
   
-			const directoryPascalName = _startCase(arr.join('-')).replace(/ /gi, '');
+			const directoryPascalName = startCase(arr.join('-')).replace(/ /gi, '');
   
 			return {
 				...acc,
@@ -109,7 +108,7 @@ class SvgComponentGenerator {
    */
 	async parseSvgListForFile(list: string[]) {
 		const fileObject =  list.reduce<Record<string, string>>((acc, cur) => {
-			const fileName = `Svg${_startCase(cur.replace(/\//gi, '-').replace('.svg', '')).replace(/ /gi, '')}`;
+			const fileName = `Svg${startCase(cur.replace(/\//gi, '-').replace('.svg', '')).replace(/ /gi, '')}`;
 			acc = {
 				...acc,
 				[fileName]: cur,
@@ -126,12 +125,25 @@ class SvgComponentGenerator {
 		for (const [key, value] of fileList) {
 			const data = await readFile(`${this.svgFileDir}/${value}`, 'utf8');
 
-			// const parser = new DOMParser();
 			const regex = /(<svg[^>]*)/;
 			const replacement = '$1 {...props}';
-			let svgElement = data.replace(/([a-z])[-:]([a-z])/g, function (_, p1, p2) {
-				return `${p1}${p2.toUpperCase()}`;
-			}).replace(regex, replacement);
+			let svgElement = data.replace(/(\s[a-z]+[-:][a-z]+)(?==)/g, function (match, p1) {
+				// p1은 매칭된 전체 문자열입니다.
+				// 이제 -나 :을 기준으로 앞뒤 문자를 변환
+				const resultAttr = (p1 as string).replace(/([a-z])[-:]([a-z])/g, function (_, p1, p2) {
+					// 첫 번째 그룹과 두 번째 그룹을 연결하되, 두 번째 그룹의 첫 글자는 대문자로 변환
+					return `${p1}${p2.toUpperCase()}`;
+				});
+				
+				// 변환된 속성 이름이 SVG_ATTRIBUTE_KEYS 배열에 포함되어 있는지 확인
+				// 이 부분은 원래 코드의 의도대로 유지
+				if (SVG_ATTRIBUTE_KEYS.includes(resultAttr.trim())) {
+					return resultAttr;
+				}
+			
+				// 조건에 맞지 않으면 원래 매칭된 문자열 반환
+				return match;
+			}).replace('class="', 'className="').replace(regex, replacement);
 
 			if (this.description) {
 				svgElement = svgElement.replace(/(<svg[^>]*>)/g, '$1{!!props.description && <desc>{props.description}</desc>}');

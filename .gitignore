@@ -1,0 +1,9 @@
+.rollup.cache
+*.log
+.vscode
+.DS_Store
+**/node_modules
+.cache
+**/.next
+node_modules
+dist

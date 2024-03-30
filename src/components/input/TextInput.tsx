@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { SVGProps } from 'react';
 import styled from '@emotion/styled';
 
 export type PropsType = {
