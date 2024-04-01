@@ -1,9 +1,5 @@
-// import { writeFile, mkdir } from 'fs/promises';
-// import path from 'path';
 const path = require('path')
 const { writeFile, mkdir } = require('fs/promises')
-
-// const __dirname = path.resolve();
 
 function dedent(str) {
     let match = str.match(/^[ \t]*(?=\S)/gm);
@@ -19,7 +15,7 @@ module.exports = function createIndexFilePlugin({ target, fileName }) {
   return {
     name: 'create-index-file',
     async generateBundle() {
-      const dirPath = path.join(__dirname, `dist/${target}`)
+      const dirPath = path.join(process.cwd(), `dist/${target}`)
       const content = `
         'use strict'
 

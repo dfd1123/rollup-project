@@ -16,10 +16,12 @@ module.exports = {
     plugins.push(new WebpackSvgComponentPlugin({
       svgFileDir: './public/svgs', 
       outputDir: './src/components/common/svg',
-      removeViewBox: true,
+      // removeViewBox: true,
       typescript: true,
       svgo: {
-        removeViewBox: true
+        plugins: [
+          "removeDimensions"
+        ]
       }
     }))
 

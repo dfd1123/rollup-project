@@ -2,17 +2,18 @@ import path from 'path';
 import { existsSync, promises } from 'fs';
 import { startCase } from 'lodash-es';
 import { SVG_ATTRIBUTE_KEYS } from './svgConst';
+import { Config as SvgConfig, optimize } from 'svgo';
 
 const { readdir, writeFile, readFile, mkdir } = promises;
 
 export type SvgComponentGeneratorOption = {
 	svgFileDir: string; 
 	outputDir?: string;
-	removeViewBox?: boolean;
 	typescript?: boolean;
 	useSvgr?: boolean;
 	title?: boolean;
 	description?: boolean;
+	svgo?: Omit<SvgConfig, 'path'>;
 };
 
 let generating = false;
@@ -36,10 +37,6 @@ class SvgComponentGenerator {
    */
 	private readonly outputDir: string;
 	/**
-   * SVG에서 viewBox를 제거할지 여부
-   */
-	private readonly removeViewBox: boolean;
-	/**
    * SVGR을 사용할지 여부
    */
 	private readonly useSvgr: boolean;
@@ -51,6 +48,7 @@ class SvgComponentGenerator {
    * SVG Desc 태그를 노출할지 여부
    */
 	private readonly description: boolean;
+	private readonly svgo?: Omit<SvgConfig, 'path'>;
   
 	/**
    * SvgComponentGenerator 클래스의 생성자입니다.
@@ -59,19 +57,19 @@ class SvgComponentGenerator {
 	constructor({ 
 		svgFileDir,
 		outputDir,
-		removeViewBox = false,
 		typescript = false, 
 		useSvgr = false,
 		title = false,
 		description = false,
+		svgo
 	}: SvgComponentGeneratorOption) {
 		this.svgFileDir = svgFileDir;
 		this.outputDir = outputDir ?? svgFileDir;
-		this.removeViewBox = removeViewBox;
 		this.useSvgr = useSvgr;
 		this.typescript = typescript;
 		this.title = title;
 		this.description = description;
+		this.svgo = svgo;
 	}
 
 	/**
@@ -123,7 +121,12 @@ class SvgComponentGenerator {
 		let componentFuncsString = '';
 
 		for (const [key, value] of fileList) {
-			const data = await readFile(`${this.svgFileDir}/${value}`, 'utf8');
+			let data = await readFile(`${this.svgFileDir}/${value}`, 'utf8');
+
+			if(this.svgo){
+				const result = optimize(data, this.svgo)
+				data = result.data;
+			}
 
 			const regex = /(<svg[^>]*)/;
 			const replacement = '$1 {...props}';
@@ -151,10 +154,6 @@ class SvgComponentGenerator {
 
 			if (this.title) {
 				svgElement = svgElement.replace(/(<svg[^>]*>)/g, `$1<title>{props.title ?? '${key}'}</title>`);
-			}
-
-			if (this.removeViewBox) {
-				svgElement = svgElement.replace(/viewBox="[^"]*"/gi, '');
 			}
 
 			const type = 'React.SVGAttributes<SVGSVGElement> & { title?: string; description?: string; }';
